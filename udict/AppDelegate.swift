@@ -16,21 +16,17 @@ import AVFoundation
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBOutlet weak var window: NSWindow!
-
-
- 
-    var lastValue: String = ""
-    
-    var word: String = ""
-    
     var webView: WebView!
+ 
+    var lastWrod: String = ""
+    var word: String = ""
     
     func startMonitorDoubleClick() {
         NSEvent.addGlobalMonitorForEventsMatchingMask(
             .LeftMouseDownMask,
             handler: { (event: NSEvent!) -> Void in
                 if event.clickCount != 2 {
-                    self.lastValue = ""
+                    self.lastWrod = ""
                     self.window.orderOut(nil)
                     return
                 }
@@ -113,7 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if word == "" {
             window.orderOut(nil)
-            lastValue = ""
+            lastWrod = ""
             return
         }
         
