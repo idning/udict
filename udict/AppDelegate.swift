@@ -23,6 +23,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var lastWrod: String = ""
     var word: String = ""
     
+    var popPoint: CGPoint = CGPoint(x: 0, y: 0)
+    var popTime = NSDate().timeIntervalSince1970
+    //var popTime: CGPoint
+    
     func startMonitorDoubleClick() {
         NSEvent.addGlobalMonitorForEventsMatchingMask(
             .LeftMouseDownMask,
@@ -39,32 +43,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSLog("Started monitoring.")
     }
     
-    func showWin(translation: String) {
-        NSLog("showWin")
-        
-        //let baseURL = NSURL(string: "http://www.baidu.com")
-        //webView.mainFrame.loadHTMLString(html, baseURL: baseURL!)
-        
-        let p:NSPoint = NSEvent.mouseLocation()
-        //window.setFrameTopLeftPoint(NSPoint(x: p.x + 5, y: p.y+50))
-        
-        //window.floatingPanel = true
-        
-        textView.string = translation
-        
-        
-        NSLog("fittingSize: %f, %f", textView.fittingSize.width, textView.fittingSize.height)
-        
-        var frame = window.frame
-        frame.size.width = 100
-        frame.size.height = 30
-        frame.origin.x = p.x - 50
-        frame.origin.y = p.y + 20
-        window.setFrame(frame, display: true)
-        
-        window.makeKeyAndOrderFront(nil)
-        
-    }
     
     func checkSelection() -> String {
         var oldValue: String = getPasteboard()
@@ -191,6 +169,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         task.resume()
     }
     
+    func showWin(translation: String) {
+        let p:NSPoint = NSEvent.mouseLocation()
+        //window.setFrameTopLeftPoint(NSPoint(x: p.x + 5, y: p.y+50))
+        
+        //window.floatingPanel = true
+        
+        textView.string = translation
+        var size = translation.sizeWithAttributes([NSFontAttributeName: NSFont.systemFontOfSize(20)])
+        NSLog("string size: w=%f | h=%f", size.width, size.height)
+        
+        var frame = window.frame
+        frame.size.width = size.width + 30
+        frame.size.height = size.height
+        frame.origin.x = p.x - size.width / 2 - 15
+        frame.origin.y = p.y + 10
+        
+        window.setFrame(frame, display: true)
+        //textView.setFrameSize(size)
+        frame.origin.x = 0
+        frame.origin.y = 0
+        textView.frame = frame
+
+        window.makeKeyAndOrderFront(nil)
+        popTime = NSDate().timeIntervalSince1970
+        popPoint = p
+    }
+    
     func initWindow() {
         window.styleMask = NSBorderlessWindowMask
         
@@ -199,10 +204,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.level = Int(CGWindowLevelForKey(Int32(kCGStatusWindowLevelKey)))
         window.ignoresMouseEvents = true
         window.collectionBehavior =  NSWindowCollectionBehavior.CanJoinAllSpaces
+        window.alphaValue = 0.9
+        window.title = "udict"
 
         let s = "bacdddd" as NSString
         let size = s.sizeWithAttributes([NSFontAttributeName: NSFont.systemFontOfSize(20)])
-        NSLog("%f | %f", size.width, size.height)
+        NSLog("string size: w=%f | h=%f", size.width, size.height)
         
         //window.floatingPanel = true
         var frame = window.frame
@@ -210,9 +217,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         frame.size.height = size.height
         window.setFrame(frame, display: true)
         
-        window.alphaValue = 0.9
         
-        window.title = "title"
         webView = WebView(frame: self.window.contentView.frame)
         //self.window.contentView.addSubview(webView)
         
@@ -220,7 +225,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         textView.string = "abc"
         
         textView.fittingSize
-        textView.backgroundColor = NSColor.redColor()
+        //textView.backgroundColor = NSColor.redColor()
         textView.verticallyResizable = true
         textView.horizontallyResizable = true
         textView.sizeToFit()
@@ -236,14 +241,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //window.orderOut(nil)
     }
     
+    func checkWin(){
+        NSLog("checkwin")
+        if (!window.visible) {
+            return
+        }
+        let p:NSPoint = NSEvent.mouseLocation()
+        if (p.x - popPoint.x) * (p.x - popPoint.x) + (p.y - popPoint.y) * (p.y - popPoint.y) > 400 {
+            NSLog("hidewin")
+            window.orderOut(nil)
+        }
+        if NSDate().timeIntervalSince1970 - popTime > 5 {
+            NSLog("hidewin")
+            window.orderOut(nil)
+        }
+    }
+    
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         initWindow()
         
-        // method 1
         startMonitorDoubleClick()
         
-        // method 2
-        //NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "getSelection", userInfo:nil, repeats: true)
+        NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "checkWin", userInfo:nil, repeats: true)
     }
     
     func applicationWillTerminate(aNotification: NSNotification) {
