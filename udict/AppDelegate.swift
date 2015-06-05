@@ -15,7 +15,9 @@ import AVFoundation
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    @IBOutlet weak var window: NSWindow!
+    //@IBOutlet weak var window: NSWindow!
+    @IBOutlet weak var window: NSPanel!
+    @IBOutlet var textView: NSTextView!
     var webView: WebView!
  
     var lastWrod: String = ""
@@ -37,15 +39,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSLog("Started monitoring.")
     }
     
-    func showWin(html: String) {
+    func showWin(translation: String) {
         NSLog("showWin")
+        
+        //let baseURL = NSURL(string: "http://www.baidu.com")
+        //webView.mainFrame.loadHTMLString(html, baseURL: baseURL!)
+        
         let p:NSPoint = NSEvent.mouseLocation()
-        window.setFrameTopLeftPoint(NSPoint(x: p.x + 5, y: p.y-15))
+        //window.setFrameTopLeftPoint(NSPoint(x: p.x + 5, y: p.y+50))
+        
+        //window.floatingPanel = true
+        
+        textView.string = translation
+        
+        
+        NSLog("fittingSize: %f, %f", textView.fittingSize.width, textView.fittingSize.height)
+        
+        var frame = window.frame
+        frame.size.width = 100
+        frame.size.height = 30
+        frame.origin.x = p.x - 50
+        frame.origin.y = p.y + 20
+        window.setFrame(frame, display: true)
         
         window.makeKeyAndOrderFront(nil)
         
-        let baseURL = NSURL(string: "http://www.baidu.com")
-        webView.mainFrame.loadHTMLString(html, baseURL: baseURL!)
     }
     
     func checkSelection() -> String {
@@ -128,10 +146,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let js = JSON(data: data)
             let translation = js["translation"][0].stringValue
             let explains = js["basic"]["explains"][0].stringValue
-            let html = String(format: "<h2>%@</h2> <hr> %@", translation, explains)
+            //let html = String(format: "<h2>%@</h2> <hr> %@", translation, explains)
+            let html = String(format: "<h3>%@</h3>", translation)
             
             dispatch_async(dispatch_get_main_queue()) {
-                self.showWin(html)
+                self.showWin(translation)
             }
         }
         task.resume()
@@ -173,24 +192,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func initWindow() {
+        window.styleMask = NSBorderlessWindowMask
+        
         window.opaque = false
         window.alphaValue = 0.88
         window.level = Int(CGWindowLevelForKey(Int32(kCGStatusWindowLevelKey)))
         window.ignoresMouseEvents = true
         window.collectionBehavior =  NSWindowCollectionBehavior.CanJoinAllSpaces
 
+        let s = "bacdddd" as NSString
+        let size = s.sizeWithAttributes([NSFontAttributeName: NSFont.systemFontOfSize(20)])
+        NSLog("%f | %f", size.width, size.height)
+        
+        //window.floatingPanel = true
         var frame = window.frame
-        frame.size.width = 200
-        frame.size.height = 70
+        frame.size.width = size.width + 30
+        frame.size.height = size.height
         window.setFrame(frame, display: true)
         
         window.alphaValue = 0.9
         
-        window.styleMask = NSBorderlessWindowMask
-        
         window.title = "title"
         webView = WebView(frame: self.window.contentView.frame)
-        self.window.contentView.addSubview(webView)
+        //self.window.contentView.addSubview(webView)
+        
+        textView = NSTextView(frame: self.window.contentView.frame)
+        textView.string = "abc"
+        
+        textView.fittingSize
+        textView.backgroundColor = NSColor.redColor()
+        textView.verticallyResizable = true
+        textView.horizontallyResizable = true
+        textView.sizeToFit()
+        
+        //textView.font = NSFont.boldSystemFontOfSize(18)
+        textView.font = NSFont.systemFontOfSize(20)
+        textView.textContainer?.lineFragmentPadding = 9
+        textView.alignCenter(nil)
+        NSLog("fittingSize: %f, %f", textView.fittingSize.width, textView.fittingSize.height)
+        
+        self.window.contentView.addSubview(textView)
+        
+        //window.orderOut(nil)
     }
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
