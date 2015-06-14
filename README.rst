@@ -1,10 +1,14 @@
+.. image:: udict.png
+    :width: 200px
+
 About udict
 ===========
 
-Yet Another dict for MAC, much better than the default 'LookUP'
+Yet Another dict for MAC, much better than the default 'LookUp'
 
 - can be used in all apps
 - better look
+
 
 TODO
 ====
