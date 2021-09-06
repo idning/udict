@@ -1,3 +1,5 @@
+Moved to https://github.com/idning/ning-projects/tree/master/udict
+
 .. image:: udict.png
     :width: 200px
 
